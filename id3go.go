@@ -3,9 +3,26 @@ package main
 import "flag"
 import "fmt"
 import "os"
+import "bytes"
+
+func byteString(b []byte) (string) {
+    /*
+    splitbytes := bytes.Split(mybytes, []byte{0}, -1)
+    fmt.Println(splitbytes)
+    return string(splitbytes[0])
+    */
+    pos := bytes.IndexByte(b, 0)
+
+    if pos == -1 {
+        pos = len(b)
+    }
+
+    return string(b[0:pos])
+}
 
 
 func ReadId3V1Tag(filename string) (map[string] string, string) {
+    g := NewGenreMap()
     buff_ := make([]byte, 128, 128)
     
     f, err := os.Open(filename, os.O_RDONLY, 0)
@@ -18,25 +35,29 @@ func ReadId3V1Tag(filename string) (map[string] string, string) {
     f.Seek(-128, 2)
     f.Read(buff_)
 
+    // First 3 characters are static "TAG" FIXME: check to be sure it matches
     buff := buff_[3:]
 
     id3tag := map[string] string {}
 
-    id3tag["title"] = string(buff[0:30])
-    id3tag["artist"] = string(buff[30:60])
-    id3tag["album"] = string(buff[60:90])
-    id3tag["year"] = string(buff[90:94])
-    id3tag["comment"] = string(buff[94:124])
-    if (id3tag["comment"][28] == 0) {
-        id3tag["track"] = string(id3tag["comment"][29:30])
+    id3tag["title"] = byteString(buff[0:30])
+    id3tag["artist"] = byteString(buff[30:60])
+    id3tag["album"] = byteString(buff[60:90])
+    id3tag["year"] = byteString(buff[90:94])
+    id3tag["comment"] = byteString(buff[94:124])
+
+    // Special case. If next-to-last comment byte is zero, then the last
+    // comment byte is the track number
+    if ( buff[122] == 0) {
+        id3tag["track"] = fmt.Sprintf("%d", buff[123])
     }
-    id3tag["genre"] = string(buff[124:125])
+    genre_code := buff[124]
+    id3tag["genre"] = fmt.Sprintf("%d", genre_code)
+    id3tag["genre_name"] = g.code_to_name[genre_code]
 
-    fmt.Printf("%s %d", id3tag["title"], len(id3tag["title"]))
-
-    // FIXME: stop processing at nulls, convert to string
-
-    fmt.Println(buff)
+    for k, v := range(id3tag) {
+        fmt.Printf("%s => %s\n", k, v)
+    }
 
     return id3tag, "" 
 }
@@ -46,7 +67,6 @@ func main() {
 
     flag.Parse()
 
-    //g := NewGenreMap()
 
     for _, filename := range(flag.Args()) {
         res, err := ReadId3V1Tag(filename)
@@ -59,7 +79,7 @@ func main() {
 }
 
 func NewGenreMap() (GenreMap) {
-    code_to_name := map[int] string { 
+    code_to_name := map[byte] string { 
         0: "Blues",
         1: "Classic Rock",
         2: "Country",
@@ -208,7 +228,7 @@ func NewGenreMap() (GenreMap) {
         146: "JPop",
         147: "SynthPop" }
 
-    name_to_code := map[string] int {} 
+    name_to_code := map[string] byte {} 
     for k, v := range(code_to_name) {
         name_to_code[v] = k
     }
@@ -221,6 +241,6 @@ func NewGenreMap() (GenreMap) {
 }
 
 type GenreMap struct {
-   code_to_name map[int] string
-   name_to_code map[string] int
+   code_to_name map[byte] string
+   name_to_code map[string] byte
 }
