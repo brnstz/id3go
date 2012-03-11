@@ -1,0 +1,18 @@
+ABOUT
+
+ID3v1 tag reader in Go
+
+* http://en.wikipedia.org/wiki/ID3#ID3v1
+
+REQUIREMENTS
+
+* Go: http://golang.org/doc/install.html
+* godag: http://code.google.com/p/godag/wiki/Install
+
+BUILD
+
+gd -o id3go src/
+
+RUN
+
+id3go mp3file [more mp3files . . . ]
