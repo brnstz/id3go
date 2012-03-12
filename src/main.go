@@ -9,7 +9,7 @@ import (
     "log"
 )
 
-// File visitor for doing recursively 
+// File visitor for doing paths recursively
 type id3Visitor int
 
 func (v id3Visitor) VisitFile (path string, f *os.FileInfo) {
