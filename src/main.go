@@ -7,7 +7,6 @@ import (
     "os"
     "path/filepath"
     "log"
-//    "strings"
 )
 
 // File visitor for doing recursively 
