@@ -17,20 +17,25 @@ func byteString(b []byte) (string) {
 }
 
 
-func ReadId3V1Tag(filename string) (map[string] string, string) {
+func ReadId3V1Tag(filename string) (map[string] string, os.Error) {
     buff_ := make([]byte, tagSize)
 
     f, err := os.Open(filename)
-    if err != nil {
-        return nil, fmt.Sprintf("%v", err)
-    }
     defer f.Close()
+
+    if err != nil {
+        return nil, err
+    }
 
     // Read last 128 bytes of file to see ID3 tag
     f.Seek(-tagSize, 2)
     f.Read(buff_)
 
-    // First 3 characters are static "TAG" FIXME: check to be sure it matches
+    // First 3 characters are static "TAG" 
+    if (byteString(buff_[0:tagStart]) != "TAG") {
+        return nil, os.NewError("No ID3 tag found")
+    }
+
     buff := buff_[tagStart:]
 
     id3tag := map[string] string {}
@@ -50,9 +55,5 @@ func ReadId3V1Tag(filename string) (map[string] string, string) {
     id3tag["genre"] = fmt.Sprintf("%d", genre_code)
     id3tag["genre_name"] = codeToName[genre_code]
 
-    for k, v := range(id3tag) {
-        fmt.Printf("%s => %s\n", k, v)
-    }
-
-    return id3tag, ""
+    return id3tag, nil
 }
