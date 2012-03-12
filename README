@@ -15,4 +15,9 @@ gd -o id3go src/
 
 RUN
 
-id3go mp3file [more mp3files . . . ]
+Accepts file or directory names. If you pass a file, it will read
+the id3 tag in that file. If you pass a directory, it will recursively
+read the id3 tag of every file in that directory tree. You can pass
+more than one file or directory.
+
+id3go path [more paths . . . ]
