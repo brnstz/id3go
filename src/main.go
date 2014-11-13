@@ -47,18 +47,21 @@ func main() {
             continue
         }
 
-        if (finfo.IsRegular()) {
+        if (finfo.Mode().IsRegular()) {
             printTag(filename)
 
-        } else if (finfo.IsDirectory()) {
+        } else if (finfo.IsDir()) {
             v := new(id3Visitor)
-            errChan := make(chan os.Error, 64)
-            filepath.Walk(filename, v, errChan)
-            select {
-                case err := <-errChan:
+            filepath.Walk(filename, func(path string, fileInfo os.FileInfo, err error) error {
+                if err != nil {
                     log.Print(err)
-                default:
-            }
+                } else if fileInfo.IsDir() {
+                    v.VisitDir(path, &fileInfo)
+                } else {
+                    v.VisitFile(path, &fileInfo)
+                }
+                return nil
+            })
         }
     }
 }

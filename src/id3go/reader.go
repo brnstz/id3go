@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
     "bytes"
+    "errors"
 )
 
 func byteString(b []byte) (string) {
@@ -17,7 +18,7 @@ func byteString(b []byte) (string) {
 }
 
 
-func ReadId3V1Tag(filename string) (map[string] string, os.Error) {
+func ReadId3V1Tag(filename string) (map[string] string, error) {
     buff_ := make([]byte, tagSize)
 
     f, err := os.Open(filename)
@@ -33,7 +34,7 @@ func ReadId3V1Tag(filename string) (map[string] string, os.Error) {
 
     // First 3 characters are static "TAG" 
     if (byteString(buff_[0:tagStart]) != "TAG") {
-        return nil, os.NewError("No ID3 tag found")
+        return nil, errors.New("No ID3 tag found")
     }
 
     buff := buff_[tagStart:]
